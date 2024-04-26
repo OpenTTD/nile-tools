@@ -104,9 +104,7 @@ impl Blame {
             String::from_utf8(output.stdout).unwrap()
         };
 
-        Blame {
-            output: output,
-        }
+        Blame { output: output }
     }
 
     /**

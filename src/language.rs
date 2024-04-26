@@ -1,8 +1,8 @@
 use indexmap::IndexMap;
-use std::path::Path;
-use std::collections::HashMap;
+use nile_library::validate::{validate_base, LanguageConfig};
 use serde::Serialize;
-use nile_library::validate::{LanguageConfig, validate_base};
+use std::collections::HashMap;
+use std::path::Path;
 
 use crate::blame::Blame;
 
@@ -40,7 +40,10 @@ pub fn english(path: &Path, commit: &String, normalize: bool) -> LanguageJson {
             let english = validate_base(config, line.translation);
 
             if !english.errors.is_empty() {
-                eprintln!("ERROR: English string {} is invalid: {:?}", line.id, english.errors);
+                eprintln!(
+                    "ERROR: English string {} is invalid: {:?}",
+                    line.id, english.errors
+                );
                 continue;
             }
             english.normalized.unwrap()
@@ -49,10 +52,13 @@ pub fn english(path: &Path, commit: &String, normalize: bool) -> LanguageJson {
         };
 
         /* English never has any cases, so no need to handled those scenarios. */
-        language_map.insert(line.id, LanguageItem {
-            cases: vec![(line.case, translation)].into_iter().collect(),
-            version: line.commit,
-        });
+        language_map.insert(
+            line.id,
+            LanguageItem {
+                cases: vec![(line.case, translation)].into_iter().collect(),
+                version: line.commit,
+            },
+        );
     }
 
     language_map
@@ -72,21 +78,26 @@ pub fn language(path: &Path, language: &String) -> LanguageJson {
         /* For each line, check when the string in english.txt was last
          * changed when this translation commit was made. This is the
          * most likely string that was translated. */
-        let english_map = english_maps.entry(line.commit.clone()).or_insert_with(|| {
-            english(path, &line.commit, false)
-        });
+        let english_map = english_maps
+            .entry(line.commit.clone())
+            .or_insert_with(|| english(path, &line.commit, false));
         if !english_map.contains_key(&line.id) {
-            eprintln!("ERROR: Couldn't find version of English translation for {} at commit {}", line.id, line.commit);
+            eprintln!(
+                "ERROR: Couldn't find version of English translation for {} at commit {}",
+                line.id, line.commit
+            );
             continue;
         }
         let english_version = english_map.get(&line.id).unwrap().version.clone();
 
-        language_map.entry(line.id).or_insert_with(|| {
-            LanguageItem {
+        language_map
+            .entry(line.id)
+            .or_insert_with(|| LanguageItem {
                 cases: HashMap::new(),
                 version: english_version,
-            }
-        }).cases.insert(line.case, line.translation);
+            })
+            .cases
+            .insert(line.case, line.translation);
     }
 
     language_map
