@@ -1,10 +1,18 @@
 use indexmap::IndexMap;
 use nile_library::validate::{validate_base, LanguageConfig};
+use once_cell::sync::Lazy;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::path::Path;
 
 use crate::blame::Blame;
+
+static ENGLISH_LANGUAGE_CONFIG: Lazy<LanguageConfig> = Lazy::new(|| LanguageConfig {
+    dialect: "openttd".to_string(),
+    cases: vec![],
+    genders: vec![],
+    plural_count: 2,
+});
 
 #[derive(Debug, Serialize)]
 pub struct LanguageItem {
@@ -23,21 +31,15 @@ type LanguageJson = IndexMap<String, LanguageItem>;
  * It can be based on older commits, as to find back what english string a
  * translation was translating.
  */
-pub fn english(path: &Path, commit: &String, normalize: bool) -> LanguageJson {
+pub fn english(path: &Path, commit: &String, validate: bool) -> LanguageJson {
     let mut language_map = LanguageJson::new();
 
     let blame = Blame::new(path, &"english".to_string(), commit);
     let mut iter = blame.iter();
 
     while let Some(line) = iter.next() {
-        let translation = if normalize {
-            let config = LanguageConfig {
-                dialect: "openttd".to_string(),
-                cases: vec![],
-                genders: vec![],
-                plural_count: 2,
-            };
-            let english = validate_base(config, line.translation);
+        if validate {
+            let english = validate_base(&ENGLISH_LANGUAGE_CONFIG, &line.translation);
 
             if !english.errors.is_empty() {
                 eprintln!(
@@ -46,16 +48,13 @@ pub fn english(path: &Path, commit: &String, normalize: bool) -> LanguageJson {
                 );
                 continue;
             }
-            english.normalized.unwrap()
-        } else {
-            line.translation
-        };
+        }
 
         /* English never has any cases, so no need to handled those scenarios. */
         language_map.insert(
             line.id,
             LanguageItem {
-                cases: vec![(line.case, translation)].into_iter().collect(),
+                cases: vec![(line.case, line.translation)].into_iter().collect(),
                 version: line.commit,
             },
         );
