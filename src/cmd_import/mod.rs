@@ -1,11 +1,11 @@
-use indexmap::IndexMap;
 use nile_library::validate::{validate_base, LanguageConfig};
 use once_cell::sync::Lazy;
-use serde::Serialize;
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::blame::Blame;
+use crate::types::{LanguageItem, LanguageJson};
+
+mod blame;
 
 static ENGLISH_LANGUAGE_CONFIG: Lazy<LanguageConfig> = Lazy::new(|| LanguageConfig {
     dialect: "openttd".to_string(),
@@ -13,14 +13,6 @@ static ENGLISH_LANGUAGE_CONFIG: Lazy<LanguageConfig> = Lazy::new(|| LanguageConf
     genders: vec![],
     plural_count: 2,
 });
-
-#[derive(Debug, Serialize)]
-pub struct LanguageItem {
-    pub cases: HashMap<String, String>,
-    pub version: String,
-}
-
-type LanguageJson = IndexMap<String, LanguageItem>;
 
 /**
  * Process the english.txt file.
@@ -34,7 +26,7 @@ type LanguageJson = IndexMap<String, LanguageItem>;
 pub fn english(path: &Path, commit: &String, validate: bool) -> LanguageJson {
     let mut language_map = LanguageJson::new();
 
-    let blame = Blame::new(path, &"english".to_string(), commit);
+    let blame = blame::Blame::new(path, &"english".to_string(), commit);
     let mut iter = blame.iter();
 
     while let Some(line) = iter.next() {
@@ -70,7 +62,7 @@ pub fn language(path: &Path, language: &String) -> LanguageJson {
     let mut language_map = LanguageJson::new();
     let mut english_maps: HashMap<String, LanguageJson> = HashMap::new();
 
-    let blame = Blame::new(path, &language, &"master".to_string());
+    let blame = blame::Blame::new(path, &language, &"master".to_string());
     let mut iter = blame.iter();
 
     while let Some(line) = iter.next() {
