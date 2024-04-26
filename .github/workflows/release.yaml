@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  release:
+    types:
+    - published
+
+jobs:
+  registries:
+    name: Publish to GitHub Releases
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install Rust toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Set version
+      run: |
+        # Remove the "v" from the version.
+        VERSION=$(echo ${{ github.ref_name }} | cut -b2-)
+        echo "Version: ${VERSION}"
+
+        sed -i 's/version = "0.0.0-git"/version = "'${VERSION}'"/' Cargo.toml
+        sed -i 's/version = "0.0.0-git"/version = "'${VERSION}'"/' Cargo.lock
+
+    - name: Build & upload binaries to release
+      uses: taiki-e/upload-rust-binary-action@v1
+      with:
+        bin: nile-tools
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

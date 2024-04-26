@@ -1,6 +1,6 @@
-# Nile Import tool
+# Nile tools
 
-This tool imports OpenTTD's language files into `nile` JSON files.
+This repository contains various of tools to help `nile` with importing/exporting OpenTTD's language files.
 
 ## Importing english
 
