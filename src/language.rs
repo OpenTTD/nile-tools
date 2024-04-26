@@ -2,6 +2,7 @@ use indexmap::IndexMap;
 use std::path::Path;
 use std::collections::HashMap;
 use serde::Serialize;
+use nile_library::validate::{LanguageConfig, validate_base};
 
 use crate::blame::Blame;
 
@@ -22,16 +23,34 @@ type LanguageJson = IndexMap<String, LanguageItem>;
  * It can be based on older commits, as to find back what english string a
  * translation was translating.
  */
-pub fn english(path: &Path, commit: &String) -> LanguageJson {
+pub fn english(path: &Path, commit: &String, normalize: bool) -> LanguageJson {
     let mut language_map = LanguageJson::new();
 
     let blame = Blame::new(path, &"english".to_string(), commit);
     let mut iter = blame.iter();
 
     while let Some(line) = iter.next() {
+        let translation = if normalize {
+            let config = LanguageConfig {
+                dialect: "openttd".to_string(),
+                cases: vec![],
+                genders: vec![],
+                plural_count: 2,
+            };
+            let english = validate_base(config, line.translation);
+
+            if !english.errors.is_empty() {
+                eprintln!("ERROR: English string {} is invalid: {:?}", line.id, english.errors);
+                continue;
+            }
+            english.normalized.unwrap()
+        } else {
+            line.translation
+        };
+
         /* English never has any cases, so no need to handled those scenarios. */
         language_map.insert(line.id, LanguageItem {
-            cases: vec![(line.case, line.translation)].into_iter().collect(),
+            cases: vec![(line.case, translation)].into_iter().collect(),
             version: line.commit,
         });
     }
@@ -54,7 +73,7 @@ pub fn language(path: &Path, language: &String) -> LanguageJson {
          * changed when this translation commit was made. This is the
          * most likely string that was translated. */
         let english_map = english_maps.entry(line.commit.clone()).or_insert_with(|| {
-            english(path, &line.commit)
+            english(path, &line.commit, false)
         });
         if !english_map.contains_key(&line.id) {
             eprintln!("ERROR: Couldn't find version of English translation for {} at commit {}", line.id, line.commit);

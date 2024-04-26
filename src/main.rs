@@ -19,7 +19,7 @@ fn main() {
     let path = Path::new(args.path.as_deref().unwrap_or("."));
 
     let json = if args.language == "english" {
-        language::english(path, &"master".to_string())
+        language::english(path, &"master".to_string(), true)
     } else {
         language::language(path, &args.language)
     };
