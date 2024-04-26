@@ -185,9 +185,9 @@ checksum = "6c8640c5d730cb13ebd907d8d04b52f55ac9a2eec55b440c8892f40d56c76c1d"
 
 [[package]]
 name = "nile-library"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d30c94ca3c71698d44316b656cff9157a9914d0879c25e395d5fe1a6ec8c433"
+checksum = "8ce5339ca8b7c656817d18041f8fa83c141705300ca5b5337168fcb9a4c255a1"
 dependencies = [
  "clap",
  "console_error_panic_hook",
