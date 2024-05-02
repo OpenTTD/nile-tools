@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use nile_library::validate::{validate_translation, LanguageConfig};
+use nile_library::validate::{validate_translation, Dialect, LanguageConfig};
 
 use crate::{config, types::LanguageJson};
 
@@ -18,7 +18,7 @@ pub fn validate(config_path: &PathBuf, data_path: &PathBuf, project: &String, la
     let config_plurals = config::read_config_plurals(config_path);
 
     let language_config: LanguageConfig = LanguageConfig {
-        dialect: "openttd".to_string(),
+        dialect: Dialect::OPENTTD, // TODO read from project
         cases: config_language.case.unwrap_or_default(),
         genders: config_language.gender.unwrap_or_default(),
         plural_count: config_plurals

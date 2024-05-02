@@ -1,4 +1,4 @@
-use nile_library::validate::{validate_base, LanguageConfig};
+use nile_library::validate::{validate_base, Dialect, LanguageConfig};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::path::Path;
@@ -8,7 +8,7 @@ use crate::types::{LanguageItem, LanguageJson};
 mod blame;
 
 static ENGLISH_LANGUAGE_CONFIG: Lazy<LanguageConfig> = Lazy::new(|| LanguageConfig {
-    dialect: "openttd".to_string(),
+    dialect: Dialect::OPENTTD, // TODO read from project
     cases: vec![],
     genders: vec![],
     plural_count: 2,

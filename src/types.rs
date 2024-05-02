@@ -13,6 +13,7 @@ pub struct LanguageItem {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigLanguage {
+    pub filename: String,
     pub name: String,
     pub ownname: String,
     pub isocode: String,
